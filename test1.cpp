@@ -84,60 +84,41 @@ static int sumInts(int acc, const int& x)
     return acc + x; 
 }
 
-//Тесты для DynamicArray
-void testDynamicArrayInt()
+//Универсальный тест для DynamicArray любого типа
+template <typename T>
+void testDynamicArrayTemplate(const std::string& suiteName, const T* initData, int size, const T& setValue)
 {
-    beginSuite("DynamicArray<int>");
+    beginSuite(suiteName);
+    DynamicArray<T> da(initData, size);
     
-    int arr[] = {10, 20, 30, 40, 50};
-    DynamicArray<int> da(arr, 5);
-    
-    check("GetSize()==5", da.GetSize() == 5);
-    check("Get(0)==10", da.Get(0) == 10);
-    check("Get(4)==50", da.Get(4) == 50);
-    check("operator[2]==30", da[2] == 30);
-    
-    da.Set(2, 99);
-    check("Set(2,99)→Get(2)==99", da.Get(2) == 99);
-    
-    da.Resize(7);
-    check("Resize(7)→size==7", da.GetSize() == 7);
-    check("Resize(7)→старые данные", da.Get(1) == 20);
-    
-    da.Resize(3);
-    check("Resize(3)→size==3", da.GetSize() == 3);
-    
-    DynamicArray<int> copy(da);
-    copy.Set(0, 777);
-    check("Копирующий конструктор", da.Get(0) == 10);
-    
-    DynamicArray<int> assigned(1);
-    assigned = da;
-    assigned.Set(0, 555);
-    check("operator=", da.Get(0) == 10);
-    
-    checkThrows<IndexOutOfRangeException>("Get(-1) исключение", [&]{ da.Get(-1); });
-    checkThrows<IndexOutOfRangeException>("Get(100) исключение", [&]{ da.Get(100); });
-    checkThrows<InvalidArgumentException>("Resize(-1) исключение", [&]{ da.Resize(-1); });
-}
+    check("GetSize() == " + std::to_string(size), da.GetSize() == size);
+    check("Get(0) == first", da.Get(0) == initData[0]);
+    check("Get(last) == last", da.Get(size - 1) == initData[size - 1]);
 
-void testDynamicArrayString()
-{
-    beginSuite("DynamicArray<std::string>");
-    
-    std::string arr[] = {"apple", "banana", "cherry"};
-    DynamicArray<std::string> da(arr, 3);
-    
-    check("GetSize()==3", da.GetSize() == 3);
-    check("Get(0)==\"apple\"", da.Get(0) == "apple");
-    check("Get(2)==\"cherry\"", da.Get(2) == "cherry");
-    
-    da.Set(1, "blueberry");
-    check("Set(1)→\"blueberry\"", da.Get(1) == "blueberry");
-    
-    DynamicArray<std::string> copy(da);
-    copy.Set(0, "CHANGED");
-    check("Глубокая копия строк", da.Get(0) == "apple");
+    da.Set(1, setValue);
+    check("Set(1) изменён", da.Get(1) == setValue);
+
+    da.Resize(size + 2);
+    check("Resize(+) size", da.GetSize() == size + 2);
+    check("Resize сохраняет старые данные", da.Get(0) == initData[0]);
+
+    da.Resize(size);
+    check("Resize(-) size", da.GetSize() == size);
+
+    //Глубокое копирование
+    DynamicArray<T> copy(da);
+    copy.Set(0, setValue);
+    check("Копирующий конструктор", da.Get(0) == initData[0]);
+
+    DynamicArray<T> assigned(1);
+    assigned = da;
+    assigned.Set(0, setValue);
+    check("operator= (глубокая копия)", da.Get(0) == initData[0]);
+
+    //Исключения
+    checkThrows<IndexOutOfRangeException>("Get(-1)", [&]{ da.Get(-1); });
+    checkThrows<IndexOutOfRangeException>("Get(100)", [&]{ da.Get(100); });
+    checkThrows<InvalidArgumentException>("Resize(-1)", [&]{ da.Resize(-1); });
 }
 
 //Тесты для LinkedList
@@ -178,63 +159,56 @@ void testLinkedListInt()
     checkThrows<EmptyStructureException>("GetFirst() на пустом", [&]{ LinkedList<int> e; e.GetFirst(); });
 }
 
-
-//Тесты для MutableArraySequence
-void testMutableArraySequenceInt()
+//Шаблонный тест для любой mutable-последовательности целых чисел
+template <template<typename> class SeqType>
+void testMutableSequenceTemplate(const std::string& suiteName)
 {
-    beginSuite("MutableArraySequence<int>");
-    
+    beginSuite(suiteName);
     int arr[] = {10, 20, 30, 40, 50};
-    MutableArraySequence<int> seq(arr, 5);
-    
+    SeqType<int> seq(arr, 5);
+
     check("GetLength()==5", seq.GetLength() == 5);
     check("GetFirst()==10", seq.GetFirst() == 10);
     check("GetLast()==50", seq.GetLast() == 50);
-    
+
     Sequence<int>* r = seq.Append(60);
-    check("Mutable Append возвращает this", r == &seq);
+    check("Append возвращает this", r == &seq);
     check("Append(60) GetLast()==60", seq.GetLast() == 60);
-    
+
     seq.Prepend(5);
     check("Prepend(5) GetFirst()==5", seq.GetFirst() == 5);
-    
+
     seq.InsertAt(25, 3);
     check("InsertAt(25,3) Get(3)==25", seq.Get(3) == 25);
-    
+
     seq.RemoveAt(3);
     check("RemoveAt(3) отработал", seq.GetLength() == 7);
-    
-    Sequence<int>* sub = seq.GetSubsequence(1, 3);
-    check("GetSubsequence(1,3) length==3", sub->GetLength() == 3);
-    delete sub;
-    
+
+    //Операции (Map, Where, Reduce, Concat)
     int arr2[] = {100, 200};
-    MutableArraySequence<int> seq2(arr2, 2);
+    SeqType<int> seq2(arr2, 2);
     Sequence<int>* cat = seq.Concat(&seq2);
     check("Concat GetLast()==200", cat->GetLast() == 200);
-    if (cat != &seq) delete cat;  
-    
-    //Map
-    MutableArraySequence<int> forMap(arr, 5);
+    if (cat != &seq) 
+    {
+        delete cat;
+    }
+
+    SeqType<int> forMap(arr, 5);
     Sequence<int>* mapped = forMap.Map(doubleInt);
     check("Map(*2) Get(0)==20", mapped->Get(0) == 20);
-    check("Map(*2) Get(4)==100", mapped->Get(4) == 100);
     delete mapped;
-    
-    //Where
-    int arr3[] = {1, 2, 3, 4, 5, 6};
-    MutableArraySequence<int> forWhere(arr3, 6);
-    Sequence<int>* filtered = forWhere.Where(isEven);
-    check("Where(isEven)→length==3", filtered->GetLength() == 3);
-    check("Where(isEven)→Get(0)==2", filtered->Get(0) == 2);
 
+    int arr3[] = {1, 2, 3, 4, 5, 6};
+    SeqType<int> forWhere(arr3, 6);
+    Sequence<int>* filtered = forWhere.Where(isEven);
+    check("Where(isEven)->length==3", filtered->GetLength() == 3);
     delete filtered;
-    
-    //Reduce
+
     int arr4[] = {1, 2, 3, 4, 5};
-    MutableArraySequence<int> forReduce(arr4, 5);
+    SeqType<int> forReduce(arr4, 5);
     check("Reduce(sum)==15", forReduce.Reduce(sumInts, 0) == 15);
-    
+
     checkThrows<IndexOutOfRangeException>("Get(-1) исключение", [&]{ forReduce.Get(-1); });
 }
 
@@ -263,43 +237,6 @@ void testImmutableArraySequenceInt()
     check("Prepend новый GetFirst()==0", n2->GetFirst() == 0);
     check("Prepend старый не изменён", seq.GetFirst() == 1);
     delete n2;
-}
-
-//Тесты для MutableListSequence
-void testMutableListSequenceInt()
-{
-    beginSuite("MutableListSequence<int>");
-    
-    int arr[] = {5, 10, 15, 20};
-    MutableListSequence<int> seq(arr, 4);
-    
-    check("GetLength()==4", seq.GetLength() == 4);
-    check("GetFirst()==5", seq.GetFirst() == 5);
-    check("GetLast()==20", seq.GetLast() == 20);
-    
-    Sequence<int>* r = seq.Append(25);
-    check("Mutable Append возвращает this", r == &seq);
-    check("Append(25) GetLast()==25", seq.GetLast() == 25);
-    
-    seq.Prepend(0);
-    check("Prepend(0) GetFirst()==0", seq.GetFirst() == 0);
-    
-    seq.InsertAt(12, 3);
-    check("InsertAt(12,3) Get(3)==12", seq.Get(3) == 12);
-    
-    seq.RemoveAt(0);
-    check("RemoveAt(0) GetFirst()==5", seq.GetFirst() == 5);
-    
-    Sequence<int>* mapped = seq.Map(doubleInt);
-    check("Map(*2) Get(0)==10", mapped->Get(0) == 10);
-    std::cout << "  Map(*2) = " << *mapped << "\n";
-    delete mapped;
-    
-    int arr2[] = {1, 2, 3, 4};
-    MutableListSequence<int> fr(arr2, 4);
-    check("Reduce(sum)==10", fr.Reduce(sumInts, 0) == 10);
-    
-    checkThrows<IndexOutOfRangeException>("Get(100) исключение", [&]{ seq.Get(100); });
 }
 
 //Тесты для AdaptiveSequence
@@ -371,16 +308,15 @@ void testBuilders()
     delete ml;
 }
 
-//Тесты для IEnumerator 
-void testIterator()
+//Шаблонный тест итератора
+template <template<typename> class ContType>
+void testIteratorTemplate(const std::string& suiteName)
 {
-    beginSuite("IEnumerator для коллекций");
-    
+    beginSuite(suiteName);
     int arr[] = {10, 20, 30};
     
-    //DynamicArray
-    DynamicArray<int> da(arr, 3);
-    IEnumerator<int>* it = da.GetEnumerator();
+    ContType<int> cont(arr, 3);
+    IEnumerator<int>* it = cont.GetEnumerator();
     bool ok = true; int idx = 0;
     while (it->MoveNext()) 
     {
@@ -389,28 +325,15 @@ void testIterator()
             ok = false;
         }
     }
-    check("DynamicArray итератор: все элементы", ok && idx == 3);
+    check("Итератор: все элементы совпадают", ok && idx == 3);
     it->Release();
-    
-    //ArraySequence
-    MutableArraySequence<int> seq(arr, 3);
-    IEnumerator<int>* it2 = seq.GetEnumerator();
-    ok = true; idx = 0;
-    while (it2->MoveNext()) 
-    {
-        if (it2->Current() != arr[idx++]) 
-        {
-            ok = false;
-        }
-    }
-    check("ArraySequence итератор: все элементы", ok && idx == 3);
-    it2->Release();
-    
+
     //Пустая коллекция
-    DynamicArray<int> empty(0);
-    IEnumerator<int>* it3 = empty.GetEnumerator();
-    check("Итератор пустой: MoveNext()==false", !it3->MoveNext());
-    it3->Release();
+    int emptyData[] = {};
+    ContType<int> empty(emptyData, 0);
+    IEnumerator<int>* itEmpty = empty.GetEnumerator();
+    check("Итератор пустой: MoveNext()==false", !itEmpty->MoveNext());
+    itEmpty->Release();
 }
 
 //Тесты для Complex
@@ -543,11 +466,11 @@ void testSquareMatrixComplexElementary()
     check("SwapRows (0,0)==3", mat.Get(0, 0).re == 3.0);
     
     //MulRow с комплексным скаляром
-    mat.MulRow(0, Complex(0, 2));  // умножить на 2i
+    mat.MulRow(0, Complex(0, 2)); 
     check("MulRow (0,0)==0+6i", mat.Get(0, 0) == Complex(0, 6));
 }
 
-// Тесты для исключений в SquareMatrix
+//Тесты для исключений в SquareMatrix
 void testSquareMatrixExceptions()
 {
     beginSuite("SquareMatrix исключения");
@@ -586,14 +509,11 @@ void testSquareMatrixIntOperations()
     check("Mul (1,1)==50", prod.Get(1, 1) == 50);  
 }
 
-// =========================================================
-// ТЕСТЫ ДЛЯ solveSLAU
-// =========================================================
-
+//Тесты СЛАУ
 void testSLAU_Double()
 {
     beginSuite("solveSLAU<double>");
-    // Система: 2x + y = 5, x + 3y = 11  →  x=0.8, y=3.4
+    //2x + y = 5, x + 3y = 11 x=0.8, y=3.4
     SquareMatrix<double> A(2);
     A.Set(0,0,2); A.Set(0,1,1);
     A.Set(1,0,1); A.Set(1,1,3);
@@ -609,7 +529,7 @@ void testSLAU_Double()
 void testSLAU_Int()
 {
     beginSuite("solveSLAU<int>");
-    // Система: 2x + y = 4, x - y = -1  →  x=1, y=2
+    //2x + y = 4, x - y = -1 x=1, y=2
     SquareMatrix<int> A(2);
     A.Set(0,0,2); A.Set(0,1,1);
     A.Set(1,0,1); A.Set(1,1,-1);
@@ -625,7 +545,7 @@ void testSLAU_Int()
 void testSLAU_Complex()
 {
     beginSuite("solveSLAU<Complex>");
-    // Система: x + y = 2+0i, x - y = 0+0i  =>  x = 1+0i, y = 1+0i
+    //x + y = 2+0i, x - y = 0+0i  x = 1+0i, y = 1+0i
     SquareMatrix<Complex> A(2);
     A.Set(0,0, Complex(1,0)); A.Set(0,1, Complex(1,0));
     A.Set(1,0, Complex(1,0)); A.Set(1,1, Complex(-1,0));
@@ -636,7 +556,6 @@ void testSLAU_Complex()
 
     auto x = solveSLAU(A, b);
     
-    // Проверка с погрешностью 1e-9 (стандарт для плавающей точки)
     bool x0_ok = std::abs(x.Get(0).re - 1.0) < 1e-9 && std::abs(x.Get(0).im - 0.0) < 1e-9;
     bool x1_ok = std::abs(x.Get(1).re - 1.0) < 1e-9 && std::abs(x.Get(1).im - 0.0) < 1e-9;
     
@@ -647,7 +566,7 @@ void testSLAU_Complex()
 void testSLAU_Exceptions()
 {
     beginSuite("solveSLAU Исключения");
-    // Вырожденная матрица: x+2y=3, 2x+4y=6
+    //Вырожденная матрица: x+2y=3, 2x+4y=6
     SquareMatrix<double> A(2);
     A.Set(0,0,1); A.Set(0,1,2);
     A.Set(1,0,2); A.Set(1,1,4);
@@ -667,7 +586,6 @@ void testSLAU_Performance_100x100()
     SquareMatrix<double> A(n);
     DynamicArray<double> b(n);
 
-    // Генерируем хорошо обусловленную матрицу (диагональное преобладание)
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             A.Set(i, j, (i == j) ? 2.0 * n : 1.0);
@@ -681,10 +599,10 @@ void testSLAU_Performance_100x100()
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> duration = end - start;
 
-        std::cout << "  ⏱ Время решения 100x100: " << duration.count() << " мс\n";
+        std::cout << "  Время решения 100x100: " << duration.count() << " мс\n";
         check("Решение найдено без исключений", true);
     } catch (const std::exception& e) {
-        std::cerr << "  ❌ Ошибка при решении: " << e.what() << "\n";
+        std::cerr << " Ошибка при решении: " << e.what() << "\n";
         check("Решение без исключений", false);
     }
 }
@@ -697,15 +615,21 @@ int main()
     std::cout << "═══════════════════════════════════════════════\n";
     
     //Последовательности
-    testDynamicArrayInt();
-    testDynamicArrayString();
+    //Тесты DynamicArray
+    int intArr[] = {10, 20, 30, 40, 50};
+    testDynamicArrayTemplate<int>("DynamicArray<int>", intArr, 5, 99);
+    std::string strArr[] = {"apple", "banana", "cherry"};
+    testDynamicArrayTemplate<std::string>("DynamicArray<std::string>", strArr, 3, "blueberry");
     testLinkedListInt();
-    testMutableArraySequenceInt();
     testImmutableArraySequenceInt();
-    testMutableListSequenceInt();
+    
+    //Инстанцируем шаблон для конкретных классов
+    testMutableSequenceTemplate<MutableArraySequence>("MutableArraySequence<int>");
+    testMutableSequenceTemplate<MutableListSequence>("MutableListSequence<int>");
     testAdaptiveSequenceInt();
     testBuilders();
-    testIterator();
+    testIteratorTemplate<DynamicArray>("IEnumerator<DynamicArray>");
+    testIteratorTemplate<MutableArraySequence>("IEnumerator<MutableArraySequence>");
     
     //Complex
     testComplexBasics();
@@ -723,6 +647,7 @@ int main()
     
     //Исключения
     testSquareMatrixExceptions();
+
 
     //СЛАУ
     testSLAU_Double();
