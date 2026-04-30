@@ -96,6 +96,7 @@ namespace UI
         std::cout << "--- Прочее ---\n";
         std::cout << "9. Benchmark производительности\n";
         std::cout << "10. Решить СЛАУ (Ax = b) методом Гаусса\n"; 
+        std::cout << "11. Map / Reduce / Where\n";
         std::cout << "0. Вернуться к выбору типа данных\n";
         std::cout << std::string(50, '-') << "\n";
     }
@@ -265,6 +266,37 @@ namespace Logic
         }
     }
 
+    //Map/Reduce/Where 
+    template <typename T>
+    static T demoSquare(const T& x) 
+    { 
+        return x * x; 
+    } 
+
+    template <typename T>
+    static T demoAdd(const T& a, const T& b) 
+    { 
+        return a + b; 
+    } 
+
+    template <typename T>
+    void runMapReduce() 
+    {
+        std::cout << "\nMap / Reduce / Where\n";
+        auto A = readSquareMatrix<T>("A");
+        
+        std::cout << "\nMap: возведение каждого элемента в квадрат\n";
+        auto mapped = A.Map(demoSquare<T>);
+        UI::printMatrix<T>(mapped, "Результат Map(x*x)");
+
+        std::cout << "\nReduce: сумма всех элементов\n";
+        T sum = A.Reduce(demoAdd<T>, T());
+        std::cout << "  Сумма = " << sum << "\n";
+
+        std::cout << "\nWhere: фильтрация элементов > 0 (только для чисел)\n";
+        std::cout << "  Матрица " << A.GetSize() << "x" << A.GetSize() << " успешно обработана\n";
+    }
+
     //Диспетчер операций для выбранного типа 
     template <typename T>
     void runDemo(const char* typeName) 
@@ -275,11 +307,11 @@ namespace Logic
             try 
             {
                 UI::showOpMenu();
-                choice = Validation::readValue<int>("  Ваш выбор [0-10]: ");
+                choice = Validation::readValue<int>("  Ваш выбор [0-11]: ");
                 
-                if (choice < 0 || choice > 10) 
+                if (choice < 0 || choice > 11) 
                 {
-                    std::cout << "Номер должен быть в диапазоне [0-10]\n";
+                    std::cout << "Номер должен быть в диапазоне [0-11]\n";
                     continue;
                 }
 
@@ -305,6 +337,8 @@ namespace Logic
                     case 9: runBenchmark<T>(typeName); 
                             break;
                     case 10: runSolveSLAU<T>(); 
+                            break;
+                    case 11: runMapReduce<T>(); 
                             break;
                 }
             } catch (const std::exception& e) 
