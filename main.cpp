@@ -6,7 +6,6 @@
 
 #include "square_matrix.h"
 #include "diagonal_matrix.h"
-#include "option.h"
 #include "benchmark.h"
 #include "dynamic_array.h"
 #include "exceptions.h"
