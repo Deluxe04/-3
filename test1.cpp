@@ -208,6 +208,42 @@ void testDiagonalMatrixDouble()
     check("MulVector (1)=7.5", std::abs(res.Get(1) - 7.5) < 1e-9);
 }
 
+static int doubleInt(const int& x) 
+{ 
+    return x * 2; 
+}
+static int addInts(const int& a, const int& b) 
+{ 
+    return a + b; 
+}
+static bool isPositiveInt(const int& x) 
+{ 
+    return x > 0; 
+}
+
+//Тест Map/Reduce/Where 
+void testMatrixMapReduce()
+{
+    beginSuite("SquareMatrix: Map / Reduce / Where");
+    int data[] = {1, -2, 3, 4};
+    SquareMatrix<int> m(data, 2);
+
+    //Map
+    auto mapped = m.Map(doubleInt);
+    check("Map(*2) Get(0,0)==2", mapped.Get(0,0) == 2);
+    check("Map(*2) Get(1,0)==6", mapped.Get(1,0) == 6);
+
+    //Reduce
+    int sum = m.Reduce(addInts, 0);
+    check("Reduce(sum)==6", sum == 6);
+
+    //Where (фильтрация >0, возвращает DynamicArray)
+    auto filtered = m.Where(isPositiveInt);
+    check("Where(>0) length==3", filtered.GetSize() == 3);
+    check("Where(>0) Get(0)==1", filtered.Get(0) == 1);
+    check("Where(>0) Get(2)==4", filtered.Get(2) == 4);
+}
+
 //Тесты исключений
 void testMatrixExceptions() 
 {
@@ -371,6 +407,7 @@ int main()
     testSquareMatrixDouble();
     testSquareMatrixComplex();
     testSquareMatrixElementary();
+    testMatrixMapReduce();
     
     //Diagonal Matrix
     testDiagonalMatrixInt();
