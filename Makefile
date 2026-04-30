@@ -1,61 +1,55 @@
-#Компилятор и флаги
+# Компилятор и флаги
 CXX      = g++
-CXXFLAGS = -Wall -Wextra -std=c++11 -g
+CXXFLAGS = -Wall -Wextra -std=c++17 -g
 
-#Цели
+# Цели
 TARGET_APP   = app
-TARGET_TEST = test
+TARGET_TEST  = test
 
-#Заголовочные файлы — все, чтобы make отслеживал изменения
+# Заголовочные файлы (добавлены отсутствующие из вашего проекта)
 HEADERS = exceptions.h     \
-          iterator.h        \
-          option.h          \
-          dynamic_array.h   \
-          linked_list.h     \
-          sequence.h        \
-          array_sequence.h  \
-          list_sequence.h   \
-          bit_sequence.h    \
-          adaptive_sequence.h \
-          builder.h
+          option.h         \
+          dynamic_array.h  \
+          square_matrix.h  \
+          diagonal_matrix.h\
+          complex.h        \
+          benchmark.h      \
+          slau_solver.h    
 
-#По умолчанию собираем оба
+# По умолчанию собираем оба
 all: $(TARGET_APP) $(TARGET_TEST)
 
-#Сборка интерактивного приложения
+# Сборка интерактивного приложения (main.cpp)
 $(TARGET_APP): main.o
 	$(CXX) $(CXXFLAGS) -o $(TARGET_APP) main.o
 
-main.o: main.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) -c main.cpp -o main.o
+main1.o: main.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c main1.cpp -o main.o
 
-#Сборка автотестов
-$(TARGET_TEST): test.o
-	$(CXX) $(CXXFLAGS) -o $(TARGET_TEST) test.o
+# Сборка автотестов (test1.cpp)
+$(TARGET_TEST): test1.o
+	$(CXX) $(CXXFLAGS) -o $(TARGET_TEST) test1.o
 
-test.o: test.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) -c test.cpp -o test.o
+test1.o: test1.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c test1.cpp -o test1.o
 
-#Запуск
+# Запуск
 run: $(TARGET_APP)
 	./$(TARGET_APP)
 
 run-test: $(TARGET_TEST)
 	./$(TARGET_TEST)
 
-#Отладка
-debug: CXXFLAGS += -DDEBUG -g
+# Режим отладки (без оптимизации, для пошаговой отладки)
+debug: CXXFLAGS += -DDEBUG -O0
 debug: all
 
-#Очистка
+# Режим бенчмарков (включает оптимизацию O2 для реалистичных замеров)
+release: CXXFLAGS += -O2
+release: all
+
+# Очистка
 clean:
-	rm -f $(TARGET_APP) $(TARGET_TEST) main.o test.o
+	rm -f $(TARGET_APP) $(TARGET_TEST) *.o
 
-.PHONY: all run run-test debug clean
-
-
-# make              # собрает app и test
-# make run          # собирает и запускает app
-# make run-test     # собирает и запускает test
-# make clean        # удаляет app, test, все .o файлы
-# make debug        # собирает с флагом -DDEBUG
+.PHONY: all run run-test debug release clean
