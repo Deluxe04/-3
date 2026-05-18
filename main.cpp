@@ -12,8 +12,34 @@
 #include "complex.h"
 #include "slau_solver.h"
 
+#include <iostream>
+#include <string>
+#include <limits>
+#include <cctype>
+
 namespace Validation 
 {
+    //Вспом-ая функция проверяющая наличие ненужных символов
+    inline bool hasTrailingGarbage() 
+    {
+        bool hasGarbage = false;
+        char nextChar;
+        while (std::cin.get(nextChar) && nextChar != '\n') 
+        {
+            if (!std::isspace(static_cast<unsigned char>(nextChar))) 
+            {
+                hasGarbage = true;
+            }
+        }
+        return hasGarbage;
+    }
+
+    inline void clearStream() 
+    {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+
     template <typename T>
     T readValue(const std::string& prompt) 
     {
@@ -21,17 +47,23 @@ namespace Validation
         while (true) 
         {
             std::cout << prompt;
+            
             if (std::cin >> val) 
             {
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                if (hasTrailingGarbage()) 
+                {
+                    std::cout << "  Ошибка. Введите только значение\n";
+                    continue;
+                }
                 return val;
             }
-            std::cout << "Некорректный формат. Ожидается число\n";
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            
+            std::cout << "  Ошибка, некорректный формат. Ожидается число\n";
+            clearStream();
         }
     }
 
+    //Специализация для Complex
     template <>
     Complex readValue<Complex>(const std::string& prompt) 
     {
@@ -39,17 +71,23 @@ namespace Validation
         while (true) 
         {
             std::cout << prompt;
+            
             if (std::cin >> re >> im) 
             {
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                return Complex(re, im); 
-            }
-            std::cout << "Ошибка: введите два числа (Re Im)\n";
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                if (hasTrailingGarbage()) 
+                {
+                    std::cout << "  Ошибка. Ожидается ровно два числа\n";
+                    continue;
+                }
+                return Complex(re, im);
+            } 
+            
+            std::cout << "  Ошибка. Ожидается ровно два числа (Re Im) через пробел\n";
+            clearStream();
         }
     }
 
+    //Чтение положительного числа
     int readPositiveInt(const std::string& prompt) 
     {
         while (true) 
@@ -59,7 +97,7 @@ namespace Validation
             {
                 return val;
             }
-            std::cout << "Размер должен быть строго > 0. Попробуйте снова\n";
+            std::cout << "  Ошибка. Значение должно быть строго больше 0. Попробуйте снова\n";
         }
     }
 }

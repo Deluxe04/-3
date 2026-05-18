@@ -91,7 +91,7 @@ public:
     }
 };
 
-// Скаляр / комплексное
+//Скаляр / комплексное
 inline Complex operator/(double s, const Complex& c)
 {
     double denom = c.re * c.re + c.im * c.im;

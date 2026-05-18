@@ -1,6 +1,8 @@
 #ifndef DIAGONAL_MATRIX_H
 #define DIAGONAL_MATRIX_H
+
 #include <cmath>
+
 #include "dynamic_array.h"
 #include "exceptions.h"
 #include "complex.h"
@@ -87,4 +89,5 @@ public:
     DiagonalMatrix operator+(const DiagonalMatrix& other) const { return Add(other); }
     DiagonalMatrix operator*(const T& scalar) const { return MulScalar(scalar); }
 };
+
 #endif // DIAGONAL_MATRIX_H

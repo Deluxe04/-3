@@ -120,4 +120,5 @@ void runFullBenchmarkSuite(const char* typeName)
     for (int i = 0; i < 4; ++i)
         runMulVectorBenchmark<T>(sizes[i], repeats[i], typeName);
 }
+
 #endif // BENCHMARK_H
