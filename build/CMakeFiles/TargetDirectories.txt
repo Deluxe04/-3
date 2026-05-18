@@ -1,4 +1,0 @@
-C:/Users/akmal/Downloads/3main/3main/build/CMakeFiles/matrix_app.dir
-C:/Users/akmal/Downloads/3main/3main/build/CMakeFiles/matrix_tests.dir
-C:/Users/akmal/Downloads/3main/3main/build/CMakeFiles/edit_cache.dir
-C:/Users/akmal/Downloads/3main/3main/build/CMakeFiles/rebuild_cache.dir
