@@ -2,7 +2,7 @@
 #include <limits>
 #include <iomanip>
 #include <string>
-#include <locale>
+#include <cctype>
 
 #include "square_matrix.h"
 #include "diagonal_matrix.h"
@@ -11,11 +11,6 @@
 #include "exceptions.h"
 #include "complex.h"
 #include "slau_solver.h"
-
-#include <iostream>
-#include <string>
-#include <limits>
-#include <cctype>
 
 namespace Validation 
 {
